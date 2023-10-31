@@ -1,5 +1,29 @@
-# stock_forecasting
-Portfolio project taken from: [Building an End-to-End Data Pipeline for Stock Forecasting using Python](https://medium.com/@dana.fatadilla123/building-an-end-to-end-data-pipeline-for-stock-forecasting-using-python-63a857be11fe)
+---
+subject: Use machine learning methods to predict stock market prices
+primary-tools:
+  - looker
+  - dbt
+  - airflow
+  - python
+  - tensorflow
+  - big query
+date-created: 2023-09-21
+date-modified: 2023-10-04
+cssclasses: 
+aliases: 
+status: active
+tags:
+  - project
+---
+<center><h2>project progress: 15%</h2><progress value="15" max="100"></progress></center>
+
+# People
+	(Project-Manager:: Julia Williams)
+	(Developer:: )
+	(Team-Members:: Kari Peterson)
+	(Stakeholders:: )
+
+
 
 # Objective
 
@@ -22,3 +46,15 @@ Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> L
 - SOFTWARE LIBRARY FOR ML: TensorFlow 
 - PLATFORM FOR SCHEDULING BATCHES: Apache Airflow 
 - DATA BUILD TOOL: dbt
+
+
+# Final Product Description
+
+
+# Research
+
+# Files
+
+# Tasks
+
+# Status Updates
