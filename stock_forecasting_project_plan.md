@@ -14,13 +14,16 @@ aliases:
 status: active
 tags:
   - project
+  - portfolio
+  - python
+  - machine-learning
 ---
 <center><h2>project progress: 15%</h2><progress value="15" max="100"></progress></center>
 
 # People
-	(Project-Manager:: Julia Williams)
+- Project Manager: (Project-Manager:: Julia Williams)
 	(Developer:: )
-	(Team-Members:: Kari Peterson)
+- Team Members: (Team-Members:: Kari Peterson)
 	(Stakeholders:: )
 
 
