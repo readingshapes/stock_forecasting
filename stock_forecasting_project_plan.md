@@ -27,33 +27,27 @@ tags:
 	(Stakeholders:: )
 
 # Objective
-
 The objective of this project is to predict stock market prices with Machine Learning methods. 
 
 # Problem Statement
-
-The United States Stock Market faces fluctuations due to supply, demand, current events, etc. There are many variables that cause the stock market to experience random behavior. However, analyzing trends in the market from previous years and applying forecasting methods can allow systems with random behaviors to be predicted with high accuracy. In this case, the stock market is a system with random behavior. By using Long short-term memory (LTSM) models (a Deep Learning network), stock prices can be predicted with high accuracy.
+The United States Stock Market faces fluctuations due to supply, demand, current events, etc. There are many variables that cause the stock market to experience random behavior. However, analyzing trends in the market from previous years and applying forecasting methods can allow systems with random behaviors to be predicted with high accuracy. In this case, the stock market is a system with random behavior. By using Long Short-Term Memory (LTSM) models (a Deep Learning network), stock prices can be predicted with high accuracy.
 
 # Data
-
 Twenty years of Yahoo Finance Data will be used. Data from Yahoo Finance will be the data source. The S&P500 index will be the collection of stocks used for predictions. 
-
-# Method
-
-LTSM (Long short-term memory) Models will be used to calculate future stock prices. LTSM Models are Recurrent Neural Networks (RNN) used for time-series data. 
-
 
 # Tools
 - LANGUAGE: Python
-- DATABASE: PostgreSQL or SQL?
+- DATABASE: SQL
 - DATA WAREHOUSE: Google BigQuery
 - ML MODELING: Google Looker
 - SOFTWARE LIBRARY FOR ML: TensorFlow 
 - PLATFORM FOR SCHEDULING BATCHES: Apache Airflow 
 - DATA BUILD TOOL: dbt
 
-Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> Looker
+# Method
+LTSM (Long short-term memory) Models will be used to calculate future stock prices. LTSM Models are Recurrent Neural Networks (RNN) used for time-series data. 
 
+Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> Looker
 
 # Final Product Description
 TBD
