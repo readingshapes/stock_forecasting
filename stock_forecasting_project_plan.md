@@ -39,9 +39,9 @@ The United States Stock Market faces fluctuations due to supply, demand, current
 Twenty years of Yahoo Finance Data will be used. Data from Yahoo Finance will be the data source. The S&P500 index will be the collection of stocks used for predictions. 
 
 # Method
+
 LTSM (Long short-term memory) Models will be used to calculate future stock prices. LTSM Models are Recurrent Neural Networks (RNN) used for time-series data. 
 
-Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> Looker
 
 # Tools
 - LANGUAGE: Python
@@ -51,6 +51,8 @@ Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> L
 - SOFTWARE LIBRARY FOR ML: TensorFlow 
 - PLATFORM FOR SCHEDULING BATCHES: Apache Airflow 
 - DATA BUILD TOOL: dbt
+
+Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> Looker
 
 
 # Final Product Description
@@ -67,3 +69,5 @@ TBD
 
 # Status Updates
 TBD
+
+
