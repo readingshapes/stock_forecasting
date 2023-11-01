@@ -21,9 +21,9 @@ tags:
 <center><h2>project progress: 15%</h2><progress value="15" max="100"></progress></center>
 
 # People
-- Project Manager: (Project-Manager:: Julia Williams)
+	(Project-Manager:: Julia Williams)
 	(Developer:: )
-- Team Members: (Team-Members:: Kari Peterson)
+	(Team-Members:: Kevin Cruz, Kari Peterson)
 	(Stakeholders:: )
 
 
@@ -36,6 +36,7 @@ The objective of this project is to predict stock market prices with Machine Lea
 
 Twenty years of Yahoo Finance Data will be used. Data from Yahoo Finance will be the data source. 
 
+Source: [Building an end-to-end data pipeline for stock forecasting using python](https://medium.com/@dana.fatadilla123/building-an-end-to-end-data-pipeline-for-stock-forecasting-using-python-63a857be11fe)
 # Method
 LTSM (Long short-term memory) Models will be used to calculate future stock prices. LTSM Models are Recurrent Neural Networks (RNN) used for time-series data. 
 
