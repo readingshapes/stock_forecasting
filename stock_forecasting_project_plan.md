@@ -27,11 +27,11 @@ tags:
 	(Team-Members:: Kevin Cruz, Kari Peterson)
 	(Stakeholders:: )
 
-
-
 # Objective
-
 The objective of this project is to predict stock market prices with Machine Learning methods. 
+
+# Problem Statement
+The United States Stock Market faces fluctuations due to supply, demand, current events, etc. There are many variables that cause the stock market to experience random behavior. However, analyzing trends in the market from previous years and applying forecasting methods can allow systems with random behaviors to be predicted with high accuracy. In this case, the stock market is a system with random behavior. By using Long Short-Term Memory (LTSM) models (a Deep Learning network), stock prices can be predicted with high accuracy.
 
 # Data
 
@@ -48,21 +48,31 @@ Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> L
 
 # Tools
 - LANGUAGE: Python
-- DATABASE: PostgreSQL or SQL?
+- DATABASE: SQL
 - DATA WAREHOUSE: Google BigQuery
 - ML MODELING: Google Looker
 - SOFTWARE LIBRARY FOR ML: TensorFlow 
 - PLATFORM FOR SCHEDULING BATCHES: Apache Airflow 
 - DATA BUILD TOOL: dbt
 
+# Method
+LTSM (Long short-term memory) Models will be used to calculate future stock prices. LTSM Models are Recurrent Neural Networks (RNN) used for time-series data. 
+
+Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> Looker
 
 # Final Product Description
-
+TBD
 
 # Research
+TBD
 
 # Files
+TBD
 
 # Tasks
+TBD
 
 # Status Updates
+TBD
+
+
