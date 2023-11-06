@@ -73,8 +73,9 @@ TBD
 TBD
 
 # Status Updates
-11-4
+11-6
 1. Julia needs to connect with Kevin about this project
 2. Julia is thinking of having the program create a report at the end that displays the top 50 stocks for January 2024. Julia wants to first design the program to work for one stock, then will reapproach for multiple stocks? 
+3. Currently working on establishing connection to sql and bigquery
 
 
