@@ -42,7 +42,7 @@ print(apple_data)
 '''
 2: load data into sql -> bigquery
 '''
-
+'''
 # establish sql connection
 sql_db = mysql.connector.connect (
    # host
@@ -50,6 +50,7 @@ sql_db = mysql.connector.connect (
    # password
 
 )
+'''
 
 # import bigquery + service account
 from google.cloud import bigquery
@@ -60,6 +61,15 @@ from google.oauth2 import service_account
 creds = service_account.Credentials.from_service_account_file('nifty-might-404319-b6aac4c63637.json')
 project_id = 'nifty-might-404319'
 client = bigquery.Client(credentials=creds, project=project_id)
+
+# connection id
+# FROM nifty-might-404319:us-west2:instance-9999
+
+sql = """
+SELECT *
+    FROM nifty-might-404319
+    WHERE = '{0}'
+    """.format(data_date)
 
 
 
