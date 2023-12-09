@@ -39,7 +39,7 @@ import pandas_gbq
 # download data for apple stock
 apple_ticker = yf.Ticker("AAPL")
 # download data from past 20 years
-apple_data = yf.download("AAPL", start = '2010-01-01', interval = '1d')
+apple_data = yf.download("AAPL", start = '2004-01-01', interval = '1d')
 apple_df = ss.retype(apple_data)
 # introduce stochrsi, macd, mfi analyses
 apple_data[['stochrsi', 'macd', 'mfi']] = apple_df[['stochrsi', 'macd', 'mfi']]
