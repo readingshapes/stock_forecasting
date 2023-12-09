@@ -1,8 +1,16 @@
 # Julia's source Python file :)
+# !/usr/bin/python3
 
 '''
 1: load data into source file
 '''
+
+# run in command line for project to be recognized: 
+# export GOOGLE_APPLICATION_CREDENTIALS="/Users/juliawilliams/Projects/stock_forecasting-1/black-vehicle-406619-bf2e31773163.json"
+# /opt/homebrew/bin/python3.9 /Users/juliawilliams/Projects/stock_forecasting-1/stock_forecasting_julia.py
+
+# run in command line for installation:
+# /usr/bin/python3 -m pip install pandas-gbq
 
 # import yahoo finance data
 import yfinance as yf
@@ -21,10 +29,8 @@ import statistics
 import pydoc
 import mysql.connector
 import os
-#import pandas_gbq
-#from pandas import pandas_gbq
-#from pandas.io import gbq
-
+import pyarrow
+import pandas_gbq
 
 # localize time - ambiguous error
 #tz = pd.Timestamp('2023-11-05')
@@ -38,11 +44,7 @@ apple_df = ss.retype(apple_data)
 # introduce stochrsi, macd, mfi analyses
 apple_data[['stochrsi', 'macd', 'mfi']] = apple_df[['stochrsi', 'macd', 'mfi']]
 #print(apple_data)
-#print(apple_ticker.get_capital_gains)
 
-# temporary: working with info
-#print(apple_ticker.balance_sheet)
-#print(apple_data)
 
 '''
 2: load data into sql -> bigquery
@@ -53,39 +55,35 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive',
 ]
 
+# import google cloud service account and bigquery
 from google.oauth2 import service_account
 from google.cloud import bigquery
+
+# specify google cloud project information
 credentials = service_account.Credentials.from_service_account_file(
-    'black-vehicle-406619-bf2e31773163.json')
+    '/Users/juliawilliams/Projects/stock_forecasting-1/black-vehicle-406619-bf2e31773163.json')
 project_id = 'black-vehicle-406619'
+client = bigquery.Client(project=project_id, credentials=credentials)
+dataset_id = 'stocks_ds'
 table_id = '20yrs_stockdata'
-client = bigquery.Client(credentials=credentials, project=project_id)
+table_path = f"{project_id}.{dataset_id}.{table_id}"
 
-
-query = """
-SELECT *
-FROM black-vehicle-406619.stocks_ds.20yrs_stockdata
-"""
-
-bq_df = client.query(query).to_dataframe()
+# specify load reqs
+load_info = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
+load_data = client.load_table_from_dataframe(apple_data, table_path, job_config=load_info)
+load_data.result()
 
 '''
-df = pd.read_gbq(
-    "SELECT * FROM `stock_ds.20yrs_stockdata`",
-    project_id='black-vehicle-406619',
-    credentials=credentials,
-)
+3: create models
 '''
 
-if bq_df.empty:
-   job = client.load_table_from_dataframe(apple_data, table_id)
-   job.result()
-   print("There are {0} rows added/changed".format(len(apple_data)))
-else:
-   changes = apple_data[~apple_data.apply(tuple, 1).isin(df.apply(tuple, 1))]
-   job = client.load_table_from_dataframe(changes, table_id)
-   job.result()
-   print("There are {0} rows added/changed".format(len(changes)))
+
+
+
+
+
+
+
 
 
 
