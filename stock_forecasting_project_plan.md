@@ -42,7 +42,7 @@ Source: [Building an end-to-end data pipeline for stock forecasting using python
 Github repo: https://github.com/readingshapes/stock_forecasting
 
 # Method
-LTSM (Long short-term memory) Models will be used to calculate future stock prices. LTSM Models are Recurrent Neural Networks (RNN) used for time-series data. 
+LSTM (Long short-term memory) Models will be used to calculate future stock prices. LSTM Models are Recurrent Neural Networks (RNN) used for time-series data. 
 
 Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> Looker
 
@@ -56,7 +56,7 @@ Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> L
 - DATA BUILD TOOL: dbt
 
 # Method
-LTSM (Long short-term memory) Models will be used to calculate future stock prices. LTSM Models are Recurrent Neural Networks (RNN) used for time-series data. 
+LSTM (Long short-term memory) Models will be used to calculate future stock prices. LSTM Models are Recurrent Neural Networks (RNN) used for time-series data. 
 
 Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> Looker
 
