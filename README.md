@@ -10,7 +10,7 @@ The objective of this project is to predict stock market prices with Machine Lea
 Twenty years of Yahoo Finance Data will be used. Data from Yahoo Finance will be the data source. 
 
 # Method
-LTSM (Long short-term memory) Models will be used to calculate future stock prices. LTSM Models are Recurrent Neural Networks (RNN) used for time-series data. 
+LSTM (Long short-term memory) Models will be used to calculate future stock prices. LTSM Models are Recurrent Neural Networks (RNN) used for time-series data. 
 
 Yahoo Finance Data -> Python -> SQL, BigQuery -> Airflow, dbt -> TensorFlow -> Looker
 

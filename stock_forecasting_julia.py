@@ -1,8 +1,16 @@
 # Julia's source Python file :)
+# !/usr/bin/python3
 
-'''
-1: load data into source file
-'''
+
+#1: load data into source file
+
+
+# run in command line for project to be recognized: 
+# export GOOGLE_APPLICATION_CREDENTIALS="/Users/juliawilliams/Projects/stock_forecasting-1/black-vehicle-406619-bf2e31773163.json"
+# /opt/homebrew/bin/python3.9 /Users/juliawilliams/Projects/stock_forecasting-1/stock_forecasting_julia.py
+
+# run in command line for installation:
+# /usr/bin/python3 -m pip install pandas-gbq
 
 # import yahoo finance data
 import yfinance as yf
@@ -21,8 +29,10 @@ import statistics
 import pydoc
 import mysql.connector
 import os
-#from pandas import pandas_gbq
-from pandas.io import gbq
+import pyarrow
+import pandas_gbq
+import statsmodels
+import tensorflow
 
 # localize time - ambiguous error
 #tz = pd.Timestamp('2023-11-05')
@@ -35,63 +45,58 @@ apple_data = yf.download("AAPL", start = '2004-01-01', interval = '1d')
 apple_df = ss.retype(apple_data)
 # introduce stochrsi, macd, mfi analyses
 apple_data[['stochrsi', 'macd', 'mfi']] = apple_df[['stochrsi', 'macd', 'mfi']]
-print(apple_data)
-print(apple_ticker.get_capital_gains)
-
-# temporary: working with info
-#print(apple_ticker.balance_sheet)
 #print(apple_data)
 
-'''
-2: load data into sql -> bigquery
-'''
+print(apple_data)
+
+
+
+#2: load data into sql -> bigquery
+
 
 SCOPES = [
     'https://www.googleapis.com/auth/cloud-platform',
     'https://www.googleapis.com/auth/drive',
 ]
 
+# import google cloud service account and bigquery
 from google.oauth2 import service_account
 from google.cloud import bigquery
+
+# specify google cloud project information
 credentials = service_account.Credentials.from_service_account_file(
     'black-vehicle-406619-bf2e31773163.json')
-
-
-df = pd.read_gbq(
-    "SELECT my_col FROM `stock_ds.20yrs_stockdata`",
-    project_id='black-vehicle-406619',
-    credentials=credentials,
-)
-
 project_id = 'black-vehicle-406619'
-dataset = 'stock_ds'
+client = bigquery.Client(project=project_id, credentials=credentials)
+dataset_id = 'stocks_ds'
 table_id = '20yrs_stockdata'
-client = bigquery.Client(credentials=credentials, project=project_id)
+table_path = f"{project_id}.{dataset_id}.{table_id}"
 
-if df.empty:
-   job = client.load_table_from_dataframe(apple_data, table_id)
-   job.result()
-   print("There are {0} rows added/changed".format(len(apple_data)))
-else:
-   changes = apple_data[~apple_data.apply(tuple, 1).isin(df.apply(tuple, 1))]
-   job = client.load_table_from_dataframe(changes, table_id)
-   job.result()
-   print("There are {0} rows added/changed".format(len(changes)))
+# specify load reqs
+load_info = bigquery.LoadJobConfig(write_disposition="WRITE_TRUNCATE")
+load_data = client.load_table_from_dataframe(apple_data, table_path, job_config=load_info)
+load_data.result()
 
 
-'''
-# import bigquery + service account
-from google.cloud import bigquery
-from google.oauth2 import service_account
+#3: Process the data
 
-# connect to bigquery
-#service_acc = "cloud-workflow-sa-25545f81@nifty-might-404319.iam.gserviceaccount.com"
-creds = service_account.Credentials.from_service_account_file('nifty-might-404319-b6aac4c63637.json')
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'nifty-might-404319-b6aac4c63637.json'
-project_id = 'nifty-might-404319'
-client = bigquery.Client(credentials=creds, project=project_id)
-table_id = 'nifty-might-404319.
-'''
+
+#from tensorflow import
+
+#sarima = sarima_model.predict(n_periods=14, return_conf_int=True)
+#lstm = lstm_model.predict(apple_data)
+
+#forecast_sarima_and_lstm = forecast_sarima * 0.7 + forecast_lstm * 0.3
+
+
+
+
+
+
+
+
+
+
 
 
 

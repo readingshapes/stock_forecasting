@@ -26,7 +26,7 @@ import openpyxl
 from openpyxl import Workbook
 import numpy as np
 import collections
-import sidetable
+#import sidetable
 import matplotlib.pyplot as plt
 import random
 import datetime
