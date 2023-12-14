@@ -27,7 +27,6 @@ import time
 import random
 import statistics
 import pydoc
-import mysql.connector
 import os
 import pyarrow
 import pandas_gbq
