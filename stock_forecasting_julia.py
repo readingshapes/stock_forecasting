@@ -24,7 +24,10 @@ import os
 import pyarrow
 import pandas_gbq
 import statsmodels
-#import tensorflow
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, LSTM, Bidirectional
+from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 
 
 def main():
@@ -35,6 +38,7 @@ def main():
     apple_df = ss.retype(apple_data)
     # introduce stochrsi, macd, mfi analyses
     apple_data[['stochrsi', 'macd', 'mfi']] = apple_df[['stochrsi', 'macd', 'mfi']]
+    #print(apple_data)
 
     #2: load data into sql -> bigquery
 
@@ -60,9 +64,11 @@ def main():
     client_table = client.dataset(dataset_id, project=project_id).table(table_id)
     number_rows = client.get_table(client_table).num_rows
 
+    test_length = apple_data["close"].values[(apple_data["close"].values.index >= '2004-01-01')].shape[0]
+
     # determine feature length and target vals for lstm model
     feature_len_list, target_val_list = features_targets(apple_data["close"].values, number_rows)
-
+    model(feature_len_list, target_val_list, apple_data["close"].values, test_length)
 
 
 #3: -- FUNCTIONS NEEDED FOR LSTM MODEL CREATION --
@@ -77,7 +83,7 @@ def features_targets(data, feature_length):
     # iterate through (length of sequential data) to (length of seq data - feature length)
     for i in range(len(data) - feature_length):
         feature_list.append(data[i : i + feature_length])
-        target_list.append(data[i+feature_length])
+        target_list.append(data[i + feature_length])
 
     # feature length list
     feature_list = np.array(feature_list).reshape(len(feature_list), feature_length, 1)
@@ -85,6 +91,31 @@ def features_targets(data, feature_length):
     target_list = np.array(target_list).reshape(len(target_list), 1)
 
     return feature_list, target_list
+
+def model(X, Y, data, test_length):
+    model = Sequential()
+    model.add(Bidirectional(LSTM(512 ,return_sequences=True , recurrent_dropout=0.1, input_shape=(20, 1))))
+    model.add(LSTM(256 ,recurrent_dropout=0.1))
+    model.add(Dropout(0.2))
+    model.add(Dense(64 , activation='elu'))
+    model.add(Dropout(0.2))
+    model.add(Dense(32 , activation='elu'))
+    model.add(Dense(1 , activation='linear'))
+    optimizer = tf.keras.optimizers.SGD(learning_rate = 0.002)
+    model.compile(loss='mse', optimizer=optimizer, metrics=[tf.keras.metrics.RootMeanSquaredError(name='rmse')])
+    #index = np.where(data >= '2004-01-01')
+    #test_length = data[index].shape(0)
+    #test_length = data[(data.index >= '2004-01-01')].shape[0]
+    Xtrain, Xtest, Ytrain, Ytest = X[:-test_length], X[-test_length:], Y[:-test_length], Y[-test_length:]
+    save_best = ModelCheckpoint("best_weights.h5", monitor='val_loss', save_best_only=True, save_weights_only=True)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.25,patience=4, min_lr=0.00001,verbose = 1)
+    history = model.fit(Xtrain, Ytrain, epochs=10, batch_size = 1, verbose=1, shuffle=False, validation_data=(Xtest , Ytest), callbacks=[reduce_lr, save_best])
+
+
+
+def lstm_predict():
+    return None
+    
 
 
 main()
