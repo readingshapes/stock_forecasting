@@ -26,8 +26,9 @@ import pandas_gbq
 import statsmodels
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout, LSTM, Bidirectional
+from tensorflow.keras.layers import LSTM, Bidirectional, Dense, Dropout
 from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+from tqdm.notebook import tnrange
 
 
 def main():
@@ -36,8 +37,6 @@ def main():
     # download data from past 20 years
     apple_data = yf.download("AAPL", start='2004-01-01', interval='1d')
     apple_df = ss.retype(apple_data)
-    # introduce stochrsi, macd, mfi analyses
-    apple_data[['stochrsi', 'macd', 'mfi']] = apple_df[['stochrsi', 'macd', 'mfi']]
     #print(apple_data)
 
     #2: load data into sql -> bigquery
@@ -64,12 +63,15 @@ def main():
     client_table = client.dataset(dataset_id, project=project_id).table(table_id)
     number_rows = client.get_table(client_table).num_rows
 
-    test_length = apple_data["close"].values[(apple_data["close"].values.index >= '2004-01-01')].shape[0]
-
+    # slice time: using data from 2004 to 2010
+    #test_length1 = apple_data[apple_df.index >= '2004-01-01' and apple_df.index <= '2010-01-01'].shape[0]
+    # slice time: using data from 2022 to present
+    test_length2 = apple_data[apple_df.index >= '2022-01-01'].shape[0]
+        
     # determine feature length and target vals for lstm model
-    feature_len_list, target_val_list = features_targets(apple_data["close"].values, number_rows)
-    model(feature_len_list, target_val_list, apple_data["close"].values, test_length)
-
+    feature_len_list, target_val_list = features_targets(apple_data["close"].values, 10)
+    # call function to create model for first test length
+    create_model(feature_len_list, target_val_list, apple_df["close"].values, test_length2)
 
 #3: -- FUNCTIONS NEEDED FOR LSTM MODEL CREATION --
 
@@ -81,7 +83,7 @@ def features_targets(data, feature_length):
     target_list = []
 
     # iterate through (length of sequential data) to (length of seq data - feature length)
-    for i in range(len(data) - feature_length):
+    for i in tnrange(len(data) - feature_length):
         feature_list.append(data[i : i + feature_length])
         target_list.append(data[i + feature_length])
 
@@ -92,25 +94,32 @@ def features_targets(data, feature_length):
 
     return feature_list, target_list
 
-def model(X, Y, data, test_length):
+def create_model(X, Y, data, test_length):
+    # initialize empty model where nodes have input and output
     model = Sequential()
-    model.add(Bidirectional(LSTM(512 ,return_sequences=True , recurrent_dropout=0.1, input_shape=(20, 1))))
-    model.add(LSTM(256 ,recurrent_dropout=0.1))
+    # create a bidirectional LSTM
+    model.add(Bidirectional(LSTM(500 ,return_sequences=True , recurrent_dropout=0.1, input_shape=(20, 1))))
+    model.add(LSTM(250 ,recurrent_dropout=0.1))
+    # add dropout and dense layers
     model.add(Dropout(0.2))
-    model.add(Dense(64 , activation='elu'))
+    model.add(Dense(60 , activation='elu'))
     model.add(Dropout(0.2))
-    model.add(Dense(32 , activation='elu'))
+    model.add(Dense(30 , activation='elu'))
     model.add(Dense(1 , activation='linear'))
-    optimizer = tf.keras.optimizers.SGD(learning_rate = 0.002)
-    model.compile(loss='mse', optimizer=optimizer, metrics=[tf.keras.metrics.RootMeanSquaredError(name='rmse')])
-    #index = np.where(data >= '2004-01-01')
-    #test_length = data[index].shape(0)
-    #test_length = data[(data.index >= '2004-01-01')].shape[0]
+    # optimize model using stochastic gradient descent to train model
+    optimize = tf.keras.optimizers.SGD(learning_rate = 0.001)
+    # compile model
+    model.compile(loss='mse', optimizer=optimize, metrics=[tf.keras.metrics.RootMeanSquaredError(name='rmse')])
+    # separate data into testing and training sets
     Xtrain, Xtest, Ytrain, Ytest = X[:-test_length], X[-test_length:], Y[:-test_length], Y[-test_length:]
-    save_best = ModelCheckpoint("best_weights.h5", monitor='val_loss', save_best_only=True, save_weights_only=True)
+    # save model weights when needed
+    weights = ModelCheckpoint("best_weights.h5", monitor='val_loss', save_best_only=True, save_weights_only=True)
+    # adjust learning rate when needed
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.25,patience=4, min_lr=0.00001,verbose = 1)
-    history = model.fit(Xtrain, Ytrain, epochs=10, batch_size = 1, verbose=1, shuffle=False, validation_data=(Xtest , Ytest), callbacks=[reduce_lr, save_best])
-
+    # !!!changed epochs from 10 to 1
+    # fit model
+    history = model.fit(Xtrain, Ytrain, epochs=1, batch_size = 1, verbose=1, shuffle=False, validation_data=(Xtest , Ytest), callbacks=[reduce_lr, weights])
+    
 
 
 def lstm_predict():
