@@ -27,8 +27,11 @@ import statsmodels
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Bidirectional, Dense, Dropout
-from tensorflow.keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
 from tqdm.notebook import tnrange
+from datetime import datetime
+from datetime import timedelta
+from datetime import date
 
 
 def main():
@@ -63,15 +66,15 @@ def main():
     client_table = client.dataset(dataset_id, project=project_id).table(table_id)
     number_rows = client.get_table(client_table).num_rows
 
-    # slice time: using data from 2004 to 2010
-    #test_length1 = apple_data[apple_df.index >= '2004-01-01' and apple_df.index <= '2010-01-01'].shape[0]
     # slice time: using data from 2022 to present
     test_length2 = apple_data[apple_df.index >= '2022-01-01'].shape[0]
         
     # determine feature length and target vals for lstm model
     feature_len_list, target_val_list = features_targets(apple_data["close"].values, 10)
     # call function to create model for first test length
-    create_model(feature_len_list, target_val_list, apple_df["close"].values, test_length2)
+    model = create_model(feature_len_list, target_val_list, apple_df["close"].values, test_length2)
+    # call function to predict lstm model
+    predict = lstm_predict(model, apple_df["close"].values, forecast_date='2024-01-03')
 
 #3: -- FUNCTIONS NEEDED FOR LSTM MODEL CREATION --
 
@@ -119,11 +122,17 @@ def create_model(X, Y, data, test_length):
     # !!!changed epochs from 10 to 1
     # fit model
     history = model.fit(Xtrain, Ytrain, epochs=1, batch_size = 1, verbose=1, shuffle=False, validation_data=(Xtest , Ytest), callbacks=[reduce_lr, weights])
+    return model
     
-
-
-def lstm_predict():
-    return None
+def lstm_predict(model, df, forecast_date, feature_length=20):
+    for i in range((datetime.strptime(forecast_date, '%Y-%m-%d') - df.index[-1]).days):
+        Features = df.iloc[-20:].values.reshape(-1, 1)
+        Features = Feature_Scaler.transform(Features)
+        Prediction = Model.predict(Features.reshape(1,20,1))
+        Prediction = Feature_Scaler.inverse_transform(Prediction)
+        df_forecast = pd.DataFrame(Prediction, index=[df.index[-1]+ timedelta(days=1)], columns=['Close'])
+        df = pd.concat([df, df_forecast])
+    return df
     
 
 
