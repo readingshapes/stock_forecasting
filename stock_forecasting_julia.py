@@ -28,11 +28,12 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Bidirectional, Dense, Dropout
 from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
-from tqdm.notebook import tnrange
+from sklearn.preprocessing import MinMaxScaler
+#from tqdm.notebook import tnrange
 from datetime import datetime
 from datetime import timedelta
 from datetime import date
-
+import matplotlib.pyplot as graph
 
 def main():
     # download data for apple stock
@@ -66,76 +67,85 @@ def main():
     client_table = client.dataset(dataset_id, project=project_id).table(table_id)
     number_rows = client.get_table(client_table).num_rows
 
-    # slice time: using data from 2022 to present
-    test_length2 = apple_data[apple_df.index >= '2022-01-01'].shape[0]
+    # determine slice of data for training set (~70%)
+    train_vals_cutoff = int(len(apple_data) * 0.7)
         
     # determine feature length and target vals for lstm model
-    feature_len_list, target_val_list = features_targets(apple_data["close"].values, 10)
+    time_step_vals, target_vals = features_targets(apple_data["close"].values, 20)
     # call function to create model for first test length
-    model = create_model(feature_len_list, target_val_list, apple_df["close"].values, test_length2)
+    scaler = MinMaxScaler(feature_range=(0,1))
+    apple_df['close_price_scaled'] = scaler.fit_transform(apple_df['close'].values.reshape(-1, 1))
+    model, loss, pre, predict, Y_test = create_model(time_step_vals, target_vals, apple_df["close"].values, train_vals_cutoff, scaler)
     # call function to predict lstm model
-    predict = lstm_predict(model, apple_df["close"].values, forecast_date='2024-01-03')
+    #predict = lstm_predict(model, apple_df["close"].values, forecast_date='2024-01-03')
+
+    
+    graph.plot(apple_df["Date"][train_vals_cutoff + 20:], scaler.inverse_transform(Y_test.reshape(-1, 1)), label='Actual Prices')
+    graph.plot(apple_df["Date"][train_vals_cutoff + 20:], predict, label='Predicted Prices')
+    graph.xlabel('Date')
+    graph.ylabel('Stock Price')
+    graph.legend()
+    graph.show()
 
 #3: -- FUNCTIONS NEEDED FOR LSTM MODEL CREATION --
 
 # create feature length list and target list - needed for lstm model
 def features_targets(data, feature_length):
     # feature length is the number of time steps in the input sequence
-    feature_list = []
     # targets are the values the model is trying to forecast
-    target_list = []
-
+    time_step_list, close_label_list = [], []
+    
     # iterate through (length of sequential data) to (length of seq data - feature length)
-    for i in tnrange(len(data) - feature_length):
-        feature_list.append(data[i : i + feature_length])
-        target_list.append(data[i + feature_length])
+    for i in range(len(data) - feature_length):
+        # this will get the vals leading up to the target
+        time_steps = data[i : i + feature_length]
+        time_step_list.append(time_steps)
+        # this will get the target val at this point
+        labels = data[i + feature_length]
+        close_label_list.append(labels)
 
-    # feature length list
-    feature_list = np.array(feature_list).reshape(len(feature_list), feature_length, 1)
-    # target list
-    target_list = np.array(target_list).reshape(len(target_list), 1)
+    # reshape lists to be suitable for network algo
+    time_step_list = np.array(time_step_list).reshape(len(time_step_list), feature_length, 1)
+    close_label_list = np.array(close_label_list).reshape(len(close_label_list), 1)
 
-    return feature_list, target_list
+    return time_step_list, close_label_list
 
-def create_model(X, Y, data, test_length):
+# -- CREATE BIDIRECTIONAL LSTM --
+def create_model(X, Y, data, train_test_slice, scaler):
+    # training set: set to train the machine learning model
+    # testing set: set used to test model after model has been trained
+    # train set is 70% of data, test set is the rest (30%)
+    X_train, X_test = X[:train_test_slice], X[train_test_slice:]
+    Y_train, Y_test = Y[:train_test_slice], Y[train_test_slice:]
+
     # initialize empty model where nodes have input and output
     model = Sequential()
     # create a bidirectional LSTM
-    model.add(Bidirectional(LSTM(500 ,return_sequences=True , recurrent_dropout=0.1, input_shape=(20, 1))))
-    model.add(LSTM(250 ,recurrent_dropout=0.1))
+    model.add(Bidirectional(LSTM(100, return_sequences=True, recurrent_dropout=0.1, input_shape=(X_train.shape[1], 1))))
+    model.add(LSTM(50, recurrent_dropout=0.1))
     # add dropout and dense layers
     model.add(Dropout(0.2))
-    model.add(Dense(60 , activation='elu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(30 , activation='elu'))
-    model.add(Dense(1 , activation='linear'))
+    model.add(Dense(2, activation='elu'))
     # optimize model using stochastic gradient descent to train model
     optimize = tf.keras.optimizers.SGD(learning_rate = 0.001)
     # compile model
-    model.compile(loss='mse', optimizer=optimize, metrics=[tf.keras.metrics.RootMeanSquaredError(name='rmse')])
-    # separate data into testing and training sets
-    Xtrain, Xtest, Ytrain, Ytest = X[:-test_length], X[-test_length:], Y[:-test_length], Y[-test_length:]
+    #model.compile(loss='mean_squared_error', optimizer=optimize, metrics=[tf.keras.metrics.RootMeanSquaredError(name='rmse')])
+    model.compile(loss='mean_squared_error', optimizer=optimize)
     # save model weights when needed
-    weights = ModelCheckpoint("best_weights.h5", monitor='val_loss', save_best_only=True, save_weights_only=True)
+    #weights = ModelCheckpoint("best_weights.h5", monitor='val_loss', save_best_only=True, save_weights_only=True)
     # adjust learning rate when needed
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.25,patience=4, min_lr=0.00001,verbose = 1)
+    #reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.25,patience=4, min_lr=0.00001,verbose = 1)
     # !!!changed epochs from 10 to 1
     # fit model
-    history = model.fit(Xtrain, Ytrain, epochs=1, batch_size = 1, verbose=1, shuffle=False, validation_data=(Xtest , Ytest), callbacks=[reduce_lr, weights])
-    return model
+    #history = model.fit(X_train, Y_train, epochs=1, batch_size = 1, verbose=1, shuffle=False, validation_data=(X_test , Y_test), callbacks=[reduce_lr, weights])
+    loss = model.evaluate(X_test, Y_test)
+    print(f'Mean Squared Error on Test Set: {loss}')
+    pred = model.predict(X_test)
+    preds = scaler.inverse_transform(pred)
+   
+    return model, loss, pred, preds, Y_test
     
-def lstm_predict(model, df, forecast_date, feature_length=20):
-    for i in range((datetime.strptime(forecast_date, '%Y-%m-%d') - df.index[-1]).days):
-        Features = df.iloc[-20:].values.reshape(-1, 1)
-        Features = Feature_Scaler.transform(Features)
-        Prediction = Model.predict(Features.reshape(1,20,1))
-        Prediction = Feature_Scaler.inverse_transform(Prediction)
-        df_forecast = pd.DataFrame(Prediction, index=[df.index[-1]+ timedelta(days=1)], columns=['Close'])
-        df = pd.concat([df, df_forecast])
-    return df
     
-
-
 main()
 
 
