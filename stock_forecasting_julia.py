@@ -34,6 +34,7 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import date
 import matplotlib.pyplot as graph
+import time
 
 def main():
     # download data for apple stock
@@ -80,12 +81,18 @@ def main():
     #predict = lstm_predict(model, apple_df["close"].values, forecast_date='2024-01-03')
 
     
-    graph.plot(apple_df["Date"][train_vals_cutoff + 20:], scaler.inverse_transform(Y_test.reshape(-1, 1)), label='Actual Prices')
-    graph.plot(apple_df["Date"][train_vals_cutoff + 20:], predict, label='Predicted Prices')
+    #graph.plot(apple_df[train_vals_cutoff + 20:], scaler.inverse_transform(Y_test.reshape(-1, 1)), label='Actual Prices')
+    #graph.plot(apple_df[train_vals_cutoff + 20:], predict, label='Predicted Prices')
+    #print(apple_df[(train_vals_cutoff + 20):])
+    #graph.plot(apple_df[(train_vals_cutoff + 20):].index, predict, label="Predicted")
+    graph.plot(apple_df[(train_vals_cutoff + 20):].index, predict[:, 0], label="Predicted")
+
     graph.xlabel('Date')
     graph.ylabel('Stock Price')
     graph.legend()
-    graph.show()
+    graph.ion()
+    graph.show(block=True)
+    graph.savefig('predicted_stock_prices.png')
 
 #3: -- FUNCTIONS NEEDED FOR LSTM MODEL CREATION --
 
