@@ -113,6 +113,23 @@ def main():
     final_predict = np.squeeze(final_predict, axis = 1)
     actual = np.squeeze(actual, axis = 1)
 
+    print(len(apple_df["Date"]))
+    graph.plot(final_predict, label = "total predict")
+    graph.plot(actual, label = "total actual")
+    graph.xlabel('Date')
+    graph.ylabel('Stock Price')
+    graph.legend()
+    #graph.savefig('predicted_stock_prices_lstm_total.png')
+    graph.savefig('test.png')
+    graph.show()
+
+    model.predict(data_transformed[-21:-1].values.reshape(1,20,1))
+    data = pd.DataFrame(apple_data)
+    test = PredictStockPrice(model, data, '2024-02-01', scaler)
+
+    
+    
+
 
 # --- FUNCTIONS NEEDED FOR LSTM MODEL CREATION ---
 
@@ -178,7 +195,7 @@ def create_model(X, Y, df, data, train_test_slice, scaler):
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.25, patience=4, min_lr=0.00001, verbose=1)
 
     # one epoch completes when the entire training dataset is processed once by the model
-    model.fit(X_train, Y_train, epochs=8, batch_size=1, verbose=1, shuffle=False, validation_data=(X_test, Y_test), callbacks=[reduce_lr, weights])
+    model.fit(X_train, Y_train, epochs=12, batch_size=1, verbose=1, shuffle=False, validation_data=(X_test, Y_test), callbacks=[reduce_lr, weights])
     actual = scaler.inverse_transform(Y_test)
     predictions = model.predict(X_test)
     predictions = scaler.inverse_transform(predictions)
@@ -190,6 +207,7 @@ def create_model(X, Y, df, data, train_test_slice, scaler):
     print(test_df)
     #return model, loss, predict, predict_inv, Y_test, scaler
 
+    '''
     # Plotting test set
     graph.plot(df.index[-train_test_slice:], predictions, label="Predicted")
     graph.plot(df.index[-train_test_slice:], actual, label="Actual")
@@ -198,8 +216,19 @@ def create_model(X, Y, df, data, train_test_slice, scaler):
     graph.legend()
     graph.savefig('predicted_stock_prices_lstm3_test.png')
     graph.show()
-
+    '''
     return model, X_train, X_test, Y_train, Y_test
+
+
+def PredictStockPrice(model, df, ForecastDate, scaler, feature_length=20):
+    for i in range((datetime.strptime(ForecastDate, '%Y-%m-%d') - df.index[-1]).days):
+        Features = df.iloc[-feature_length:].values.reshape(-1, 1)
+        Features = scaler.transform(Features)
+        Prediction = model.predict(Features.reshape(1, feature_length, 1))
+        Prediction = scaler.inverse_transform(Prediction)
+        df_forecast = pd.DataFrame(Prediction, index=[df.index[-1] + timedelta(days=1)], columns=['Close'])
+        df = pd.concat([df, df_forecast])
+    return df
     
      
 main()
