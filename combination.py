@@ -42,10 +42,9 @@ warnings.simplefilter(action = "ignore", category = RuntimeWarning)
 
 def main():
 # --------- SARIMA MODEL ----------
-    apple_data = yf.download("AAPL", start = "2017-01-01", interval = '1d')
+    apple_data = yf.download("AAPL", start = "2022-01-01", interval = '1d')
     apple_df_test = apple_data.reset_index()
     apple_df = apple_df_test.copy()
-
 
     # --- LOAD DATA INTO BIGQUERY ---
 
@@ -92,7 +91,6 @@ def main():
         suppress_warnings=True,
         stepwise=True)
     
-'''
 
     # Serialize with Pickle and save it as pkl
     with open('sarima_model.pkl', 'wb') as pkl:
@@ -105,6 +103,17 @@ def main():
     # Call Forecast function for SARIMA model
     test = forecast(loaded_model, apple_transformed, "2023-12-20")
 
+    # Plot
+    plt.figure(figsize=(15,7))
+    plt.plot(test["Actual"][-120:], color='#1f76b4')
+    plt.plot(test["Prediction"], color='darkgreen')
+    plt.fill_between(test.index,
+                    test["Low"],
+                    test["High"],
+                    color='k', alpha=.15)
+
+    plt.title("SARIMA - Forecast of APPL Stock Price")
+    plt.show()
 
 
 # --- forecast function for SARIMA model ---
@@ -130,7 +139,9 @@ def forecast(model, df, forecast_date):
     return df_result
 
 
-'''
+
+
+
 
 main()
 
