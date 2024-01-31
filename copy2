@@ -196,7 +196,7 @@ def create_model(X, Y, df, data, train_test_slice, scaler):
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.25, patience=4, min_lr=0.00001, verbose=1)
 
     # one epoch completes when the entire training dataset is processed once by the model
-    model.fit(X_train, Y_train, epochs=1, batch_size=1, verbose=1, shuffle=False, validation_data=(X_test, Y_test), callbacks=[reduce_lr, weights])
+    #model.fit(X_train, Y_train, epochs=1, batch_size=1, verbose=1, shuffle=False, validation_data=(X_test, Y_test), callbacks=[reduce_lr, weights])
     actual = scaler.inverse_transform(Y_test)
     predictions = model.predict(X_test)
     predictions = scaler.inverse_transform(predictions)
