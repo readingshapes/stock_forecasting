@@ -31,7 +31,7 @@ tags:
 The objective of this project is to predict stock market prices with Machine Learning methods. 
 
 # Problem Statement
-The United States Stock Market faces fluctuations due to supply, demand, current events, etc. There are many variables that cause the stock market to experience random behavior. However, analyzing trends in the market from previous years and applying forecasting methods can allow systems with random behaviors to be predicted with high accuracy. In this case, the stock market is a system with random behavior. By using Long Short-Term Memory (LSTM) models (a Deep Learning network), stock prices can be predicted with high accuracy.
+The United States Stock Market faces fluctuations due to supply, demand, current events, etc. There are many variables that cause the stock market to experience random behavior. However, analyzing trends in the market from previous years and applying forecasting methods can allow systems with random behaviors to be predicted with high accuracy. In this case, the stock market is a system with random behavior. By using Long Short-Term Memory (LSTM) models (a Deep Learning network), and SARIMA (Seasonal Auto-Regressive Integrated Moving Average) models, stock prices can be predicted with high accuracy.
 
 # Data
 
