@@ -1,0 +1,136 @@
+# combo_local_machine file updated with functions (object oriented programming)
+
+# import yahoo finance data
+import yfinance as yf
+# import stockstats data
+from stockstats import StockDataFrame as ss
+# import necessary libraries
+import matplotlib as mp
+import numpy as np
+import pandas as pd
+import pytz
+import warnings
+import time
+import random
+import statistics
+import pydoc
+import os
+import pyarrow
+#import pandas_gbq
+import statsmodels
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Bidirectional, Dense, Dropout
+from tensorflow.keras.callbacks import ReduceLROnPlateau, ModelCheckpoint
+from sklearn.preprocessing import MinMaxScaler
+import sqlite3
+import pickle
+
+#import libraries for SARIMA model
+import pmdarima as pm
+from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+import pickle as pkl
+from datetime import datetime
+from datetime import timedelta
+from datetime import date
+
+def main():
+
+    # 1: ----- SARIMA MODEL ----- (INITIAL LOAD)
+    # ask user for stock ticker and print data
+    stock_select_str = input("Enter stock ticker: ")
+    # initial load run
+    stock_data = yf.download(stock_select_str, start = '2015-12-01', end = '2023-01-01', interval = '1d')
+    # scale data
+    feature_scaler = MinMaxScaler()
+    # run SARIMA functions for initial load
+    initial_transformed, initial_model = load(stock_data, feature_scaler)
+    print("initial load returned")
+    # forecast initial load
+    initial_df_pred_sarima = sarima_forecast(initial_model, initial_transformed, '2024-06-01', feature_scaler)
+    print(initial_df_pred_sarima.tail())
+
+    # 2: ---- SARIMA MODEL ---- (APPENDED LOAD)
+    appended_data = yf.download(stock_select_str, start = '2023-01-02', interval = '1d')
+    # run SARIMA functions for appended load
+    appended_transformed, appended_model = load(appended_data, feature_scaler)
+    print("append load returned")
+    # forecast appended load
+    appended_df_pred_sarima = sarima_forecast(appended_model, appended_transformed, '2024-06-01', feature_scaler)
+    print(appended_df_pred_sarima.tail())
+
+    # 3: ---- SARIMA MODEL ---- FORECAST VALUES WEIGHT COMBINATION
+    total = len(stock_data.index) + len(appended_data.index)
+    print(total)
+    weight_initial = float(len(stock_data.index) / total)
+    print(weight_initial)
+
+
+def load(stock_data, feature_scaler):
+    # remove any duplicate index
+    stock_data = stock_data.loc[~stock_data.index.duplicated(keep='first')]
+    # filter only required data
+    stock_data = stock_data[['Close']]
+    # transform current stock data
+    stock_transformed = pd.DataFrame(np.squeeze(feature_scaler.fit_transform(stock_data), axis=1), columns=["Close"], index=stock_data.index)
+    # call function to fit a seasonal ARIMA model
+    sarima_model = process_model(stock_transformed)
+    # call function to serialize / deserialize SARIMA model with pickle
+    sarima_model = serialize_deserialize(sarima_model)
+    return stock_transformed, sarima_model
+
+    
+def process_model(stock_transformed):
+    sarima_model = pm.auto_arima(stock_transformed["Close"], start_p=1, start_q=1,
+                         test='adf',
+                         max_p=3, max_q=3,
+                         m=12, #12 is the frequency of the cycle (yearly)
+                         start_P=0,
+                         seasonal=True, #set to seasonal
+                         d=None,
+                         D=1, #order of the seasonal differencing
+                         trace=False,
+                         error_action='ignore',
+                         suppress_warnings=True,
+                         stepwise=True)
+    
+    return sarima_model
+
+def serialize_deserialize(sarima_model):
+    # Serialize with Pickle and save it as pkl
+    with open('sarima_model.pkl', 'wb') as pkl:
+        pickle.dump(sarima_model, pkl)
+
+    # Desiarilize the content of the file back into a Python object
+    with open('sarima_model.pkl', 'rb') as pkl:
+        loaded_model = pickle.load(pkl)
+
+    return loaded_model
+
+def sarima_forecast(model, df, forecast_date, Feature_Scaler):
+    # Forecast
+    n_periods = (datetime.strptime(forecast_date, '%Y-%m-%d') - df.index[-1]).days
+    fitted, confint = model.predict(n_periods=n_periods, return_conf_int=True)
+    index_of_fc = pd.date_range(df.index[-1] + pd.DateOffset(days=1), periods = n_periods, freq='D')
+
+    # Make series for plotting purpose
+    fitted_series = pd.Series(fitted.values, index=index_of_fc)
+    lower_series = pd.Series(confint[:, 0], index=index_of_fc)
+    upper_series = pd.Series(confint[:, 1], index=index_of_fc)
+
+    #Concatenate the original DataFrame with forecasted values and confidence intervals
+    df_result = pd.concat([df, fitted_series, lower_series, upper_series], axis=1)
+    df_result.columns = ["Actual", "Prediction", "Low", "High"]
+
+    #Inverse transform the scaled values to their original scale
+    for column in df_result.columns:
+      df_result[column] = Feature_Scaler.inverse_transform(df_result[column].values.reshape(-1,1))
+
+    return df_result
+
+main()
+
+
+
+
