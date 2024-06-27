@@ -34,6 +34,31 @@ import pickle as pkl
 from datetime import datetime
 from datetime import timedelta
 from datetime import date
+import matplotlib.pyplot as graph
+
+
+''' 
+1. AAPL - total yrs: 2015 - present
+-- initial load: 2015-2023
+-- appended load: 2023-present
+--initial load -> run thru all functions (predicting w data only from 2015-2023)
+--appended load -> run thru all functions
+
+now: predicted vals in a df from historical data (2015-2023) -> save those values
+     predicted vals in a df from historical data (2023-present)
+
+
+     SARIMA MODEL:
+     Input Ranges:
+     1. 1-1-15 to 5-31-2024, 2 minutes 28 seconds
+     2. 1-1-17 to 5-31-2024
+     3. 1-1-19 to 5-31-2024
+     4. 1-1-21 to 5-31-2024
+
+     Predicting: 
+     June 1st - June 11th, 2024
+
+'''
 
 def main():
 
@@ -41,16 +66,27 @@ def main():
     # ask user for stock ticker and print data
     stock_select_str = input("Enter stock ticker: ")
     # initial load run
-    stock_data = yf.download(stock_select_str, start = '2015-12-01', end = '2023-01-01', interval = '1d')
+    stock_data = yf.download(stock_select_str, start = '2015-01-01', end = '2024-05-31', interval = '1d')
     # scale data
     feature_scaler = MinMaxScaler()
     # run SARIMA functions for initial load
     initial_transformed, initial_model = load(stock_data, feature_scaler)
     print("initial load returned")
     # forecast initial load
-    initial_df_pred_sarima = sarima_forecast(initial_model, initial_transformed, '2024-06-01', feature_scaler)
-    print(initial_df_pred_sarima.tail())
+    initial_df_pred_sarima = sarima_forecast(initial_model, initial_transformed, '2024-06-11', feature_scaler)
+    print(initial_df_pred_sarima.tail(11))
+    #print(initial_df_pred_sarima)
+    plot = create_plot(initial_df_pred_sarima)
+    graph.plot(plot, label = "total predict")
+    #graph.plot(actual, label = "total actual")
+    graph.xlabel('Date')
+    graph.ylabel('Stock Price')
+    graph.legend()
+    #graph.savefig('predicted_stock_prices_lstm_total.png')
+    graph.savefig('test1.png')
+    graph.show()
 
+    '''
     # 2: ---- SARIMA MODEL ---- (APPENDED LOAD)
     appended_data = yf.download(stock_select_str, start = '2023-01-02', interval = '1d')
     # run SARIMA functions for appended load
@@ -65,6 +101,7 @@ def main():
     print(total)
     weight_initial = float(len(stock_data.index) / total)
     print(weight_initial)
+    '''
 
 
 def load(stock_data, feature_scaler):
@@ -128,6 +165,19 @@ def sarima_forecast(model, df, forecast_date, Feature_Scaler):
       df_result[column] = Feature_Scaler.inverse_transform(df_result[column].values.reshape(-1,1))
 
     return df_result
+
+def create_plot(test):
+    # Plot
+    plt.figure(figsize=(15,7))
+    plt.plot(test["Actual"][-120:], color='#1f76b4')
+    plt.plot(test["Prediction"], color='darkgreen')
+    plt.fill_between(test.index,
+                test["Low"],
+                test["High"],
+                color='k', alpha=.15)
+
+    plt.title("SARIMA - Forecast of AAPL Stock Price")
+    plt.show()
 
 main()
 
