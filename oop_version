@@ -66,7 +66,11 @@ def main():
     # ask user for stock ticker and print data
     stock_select_str = input("Enter stock ticker: ")
     # initial load run
+<<<<<<< Updated upstream
     stock_data = yf.download(stock_select_str, start = '2015-01-01', end = '2024-05-31', interval = '1d')
+=======
+    stock_data = yf.download(stock_select_str, start = '2024-02-01', end = '2024-05-31', interval = '1d')
+>>>>>>> Stashed changes
     # scale data
     feature_scaler = MinMaxScaler()
     # run SARIMA functions for initial load
@@ -74,10 +78,12 @@ def main():
     print("initial load returned")
     # forecast initial load
     initial_df_pred_sarima = sarima_forecast(initial_model, initial_transformed, '2024-06-11', feature_scaler)
-    print(initial_df_pred_sarima.tail(11))
+    #print_metrics(initial_transformed, initial_model)
+    #print(initial_df_pred_sarima.tail(11))
     #print(initial_df_pred_sarima)
-    plot = create_plot(initial_df_pred_sarima)
-    graph.plot(plot, label = "total predict")
+    #plot = create_plot(initial_df_pred_sarima)
+    print(initial_df_pred_sarima["Actual"])
+    #graph.plot(plot, label = "total predict")
     #graph.plot(actual, label = "total actual")
     graph.xlabel('Date')
     graph.ylabel('Stock Price')
@@ -119,6 +125,7 @@ def load(stock_data, feature_scaler):
 
     
 def process_model(stock_transformed):
+    print("process model \n")
     sarima_model = pm.auto_arima(stock_transformed["Close"], start_p=1, start_q=1,
                          test='adf',
                          max_p=3, max_q=3,
@@ -135,6 +142,7 @@ def process_model(stock_transformed):
     return sarima_model
 
 def serialize_deserialize(sarima_model):
+    print("serialize \n")
     # Serialize with Pickle and save it as pkl
     with open('sarima_model.pkl', 'wb') as pkl:
         pickle.dump(sarima_model, pkl)
@@ -146,6 +154,7 @@ def serialize_deserialize(sarima_model):
     return loaded_model
 
 def sarima_forecast(model, df, forecast_date, Feature_Scaler):
+    print("forecast \n")
     # Forecast
     n_periods = (datetime.strptime(forecast_date, '%Y-%m-%d') - df.index[-1]).days
     fitted, confint = model.predict(n_periods=n_periods, return_conf_int=True)
@@ -166,7 +175,43 @@ def sarima_forecast(model, df, forecast_date, Feature_Scaler):
 
     return df_result
 
+def print_metrics(df_result, model):
+    print("Calculating metrics...")
+    # Print the columns in df_result for debugging
+    print("Columns in df_result:", df_result.columns)
+
+    # Ensure that the DataFrame contains the required columns
+    required_columns = ['Actual', 'Prediction']
+    if not all(col in df_result.columns for col in required_columns):
+        raise ValueError(f"DataFrame must contain the columns: {required_columns}")
+
+    # Calculate and print AIC and BIC
+    aic = model.aic()
+    bic = model.bic()
+    print(f"AIC: {aic}")
+    print(f"BIC: {bic}")
+
+    # Calculate and print RMSE and MSE
+    df_result = df_result.dropna()
+    mse = ((df_result["Actual"] - df_result["Prediction"]) ** 2).mean()
+    rmse = np.sqrt(mse)
+    print(f"MSE: {mse}")
+    print(f"RMSE: {rmse}")
+
+    # Calculate and print R-squared
+    ss_total = ((df_result["Actual"] - df_result["Actual"].mean()) ** 2).sum()
+    ss_residual = ((df_result["Actual"] - df_result["Prediction"]) ** 2).sum()
+    r_squared = 1 - (ss_residual / ss_total)
+    print(f"R-squared: {r_squared}")
+
+    # Calculate p-value (This is approximate, more robust methods available)
+    from statsmodels import api as sm
+    X = sm.add_constant(df_result["Prediction"])
+    model_sm = sm.OLS(df_result["Actual"], X).fit()
+    print(f"P-value: {model_sm.pvalues[1]}")
+
 def create_plot(test):
+    print("create plot \n")
     # Plot
     plt.figure(figsize=(15,7))
     plt.plot(test["Actual"][-120:], color='#1f76b4')
@@ -180,7 +225,3 @@ def create_plot(test):
     plt.show()
 
 main()
-
-
-
-
