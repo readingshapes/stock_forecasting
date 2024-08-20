@@ -66,11 +66,7 @@ def main():
     # ask user for stock ticker and print data
     stock_select_str = input("Enter stock ticker: ")
     # initial load run
-<<<<<<< Updated upstream
-    stock_data = yf.download(stock_select_str, start = '2015-01-01', end = '2024-05-31', interval = '1d')
-=======
-    stock_data = yf.download(stock_select_str, start = '2024-02-01', end = '2024-05-31', interval = '1d')
->>>>>>> Stashed changes
+    stock_data = yf.download(stock_select_str, start = '2024-04-01', end = '2024-05-31', interval = '1d')
     # scale data
     feature_scaler = MinMaxScaler()
     # run SARIMA functions for initial load
@@ -78,11 +74,12 @@ def main():
     print("initial load returned")
     # forecast initial load
     initial_df_pred_sarima = sarima_forecast(initial_model, initial_transformed, '2024-06-11', feature_scaler)
-    #print_metrics(initial_transformed, initial_model)
+    print_metrics(initial_df_pred_sarima.tail(11), initial_model, stock_select_str)
+    #print("IMPORTANT\n")
     #print(initial_df_pred_sarima.tail(11))
     #print(initial_df_pred_sarima)
     #plot = create_plot(initial_df_pred_sarima)
-    print(initial_df_pred_sarima["Actual"])
+    #print(initial_df_pred_sarima["Actual"])
     #graph.plot(plot, label = "total predict")
     #graph.plot(actual, label = "total actual")
     graph.xlabel('Date')
@@ -175,15 +172,20 @@ def sarima_forecast(model, df, forecast_date, Feature_Scaler):
 
     return df_result
 
-def print_metrics(df_result, model):
+def print_metrics(df_result, model, stock_name):
     print("Calculating metrics...")
     # Print the columns in df_result for debugging
     print("Columns in df_result:", df_result.columns)
 
+    stock_ticker = yf.Ticker(stock_name)
+    #real_values = stock_ticker.history(start='2024-06-01', end='2024-06-11')
+    real_values = yf.download(stock_name, end='2024-06-11')
+    #print(real).tail(11))
+    
     # Ensure that the DataFrame contains the required columns
-    required_columns = ['Actual', 'Prediction']
-    if not all(col in df_result.columns for col in required_columns):
-        raise ValueError(f"DataFrame must contain the columns: {required_columns}")
+    #required_columns = ['Actual', 'Prediction']
+    #if not all(col in df_result.columns for col in required_columns):
+       #raise ValueError(f"DataFrame must contain the columns: {required_columns}")
 
     # Calculate and print AIC and BIC
     aic = model.aic()
@@ -192,12 +194,28 @@ def print_metrics(df_result, model):
     print(f"BIC: {bic}")
 
     # Calculate and print RMSE and MSE
-    df_result = df_result.dropna()
-    mse = ((df_result["Actual"] - df_result["Prediction"]) ** 2).mean()
+    #df_result = df_result.dropna()
+    print("BEOFRE\n")
+    print(real_values.loc['2024-06-01':'2024-06-11', "Close"])
+    print("SEC\n")
+
+    #print("type1:", type(real_values.index))
+    #print("type:", type(df_result.index))
+    #print(df_result.loc['2024-06-01':'2024-06-11', "Prediction"])
+    subtract = (real_values.loc['2024-06-01':'2024-06-11', "Close"] - df_result.loc['2024-06-01':'2024-06-11',"Prediction"])
+    print("subtract\n")
+    print(subtract)
+    mse = (subtract ** 2).mean()
+    print("real vals\n")
+    print(real_values["Close"])
+    print("predicted values\n")
+    print(df_result["Prediction"].tail(11))
+    print(mse)
     rmse = np.sqrt(mse)
     print(f"MSE: {mse}")
     print(f"RMSE: {rmse}")
 
+'''
     # Calculate and print R-squared
     ss_total = ((df_result["Actual"] - df_result["Actual"].mean()) ** 2).sum()
     ss_residual = ((df_result["Actual"] - df_result["Prediction"]) ** 2).sum()
@@ -209,6 +227,8 @@ def print_metrics(df_result, model):
     X = sm.add_constant(df_result["Prediction"])
     model_sm = sm.OLS(df_result["Actual"], X).fit()
     print(f"P-value: {model_sm.pvalues[1]}")
+
+'''
 
 def create_plot(test):
     print("create plot \n")
