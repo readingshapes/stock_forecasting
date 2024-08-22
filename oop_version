@@ -209,27 +209,48 @@ def print_metrics(df_result, model, stock_name):
     print("real vals\n")
     print(real_values["Close"])
     print("predicted values\n")
-    print(df_result["Prediction"].tail(11))
+    print(df_result["Prediction"])
     print(mse)
     rmse = np.sqrt(mse)
     print(f"MSE: {mse}")
     print(f"RMSE: {rmse}")
 
-'''
     # Calculate and print R-squared
-    ss_total = ((df_result["Actual"] - df_result["Actual"].mean()) ** 2).sum()
-    ss_residual = ((df_result["Actual"] - df_result["Prediction"]) ** 2).sum()
+    # actual values - mean of actual values
+    ss_total = ((real_values.loc['2024-06-01':'2024-06-11', "Close"] - (real_values.loc['2024-06-01':'2024-06-11', "Close"]).mean()) ** 2).sum()
+    print(ss_total)
+    # residual sum of squares
+    ss_residual = ((real_values.loc['2024-06-01':'2024-06-11', "Close"] - df_result["Prediction"]) ** 2).sum()
+    print(ss_residual)
+
     r_squared = 1 - (ss_residual / ss_total)
     print(f"R-squared: {r_squared}")
 
     # Calculate p-value (This is approximate, more robust methods available)
-    from statsmodels import api as sm
+    # Calculate p-value
+    # Prepare data for OLS regression
+    import statsmodels.api as sm
     X = sm.add_constant(df_result["Prediction"])
-    model_sm = sm.OLS(df_result["Actual"], X).fit()
-    print(f"P-value: {model_sm.pvalues[1]}")
+    y = real_values.loc['2024-06-01':'2024-06-11', "Close"]
+    print(X)
+    print(y)
+
+    # Ensure indices match
+    X = X.loc[y.index]
+    y = y.loc[X.index]
+
+    # Fit OLS model
+    model_sm = sm.OLS(y, X).fit()
+    
+    # Extract and print p-value
+    p_value = model_sm.pvalues[1]  # p-value for the 'Prediction' variable
+    print(f"P-value: {p_value}")
 
 '''
 
+'''
+
+'''
 def create_plot(test):
     print("create plot \n")
     # Plot
@@ -243,5 +264,8 @@ def create_plot(test):
 
     plt.title("SARIMA - Forecast of AAPL Stock Price")
     plt.show()
+'''
+
+
 
 main()
