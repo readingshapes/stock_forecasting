@@ -66,7 +66,7 @@ def main():
     # ask user for stock ticker and print data
     stock_select_str = input("Enter stock ticker: ")
     # initial load run
-    stock_data = yf.download(stock_select_str, start = '2024-04-01', end = '2024-05-31', interval = '1d')
+    stock_data = yf.download(stock_select_str, start = '2021-01-01', end = '2024-05-31', interval = '1d')
     # scale data
     feature_scaler = MinMaxScaler()
     # run SARIMA functions for initial load
@@ -75,9 +75,9 @@ def main():
     # forecast initial load
     initial_df_pred_sarima = sarima_forecast(initial_model, initial_transformed, '2024-06-11', feature_scaler)
     print_metrics(initial_df_pred_sarima.tail(11), initial_model, stock_select_str)
-    #print("IMPORTANT\n")
+    print("IMPORTANT\n")
     #print(initial_df_pred_sarima.tail(11))
-    #print(initial_df_pred_sarima)
+    print(initial_df_pred_sarima.tail(11))
     #plot = create_plot(initial_df_pred_sarima)
     #print(initial_df_pred_sarima["Actual"])
     #graph.plot(plot, label = "total predict")
