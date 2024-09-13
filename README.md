@@ -1,4 +1,4 @@
-# Stock Forecasting with SARIMA Models
+# Stock Forecasting with SARIMA Model
 
 A project by Julia Williams and Kevin Cruz
 
