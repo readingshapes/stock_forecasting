@@ -42,6 +42,10 @@ Historical Data Time Ranges:
 *which one, 2019 or 2021? accuracy threshold % for each stock?*
 *for whichever year you pick, list accuracy % for each stock*
 
+Apple (AAPL) - 2019 - 98% - volatile
+Tesla (TSLA) - 2021 - 95% - stable
+Nvidia (NVDA) - 2019 - 96% - volatile
+
 ### **variance among stocks?**
 
 - They demonstrated high accuracy in capturing seasonal trends and underlying patterns in stock data. *see above*
