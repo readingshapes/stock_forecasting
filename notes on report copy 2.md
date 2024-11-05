@@ -117,26 +117,38 @@ In this context, accuracy refers to how closely the SARIMA model's predicted val
 ~~# % pip install plt~~
 *you don't need to show pip install in documentation*
 
-import pandas as pd
+
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
+import scikit-learn as sklearn
+import matplotlib 
+
 *you need to import scikit-learn before you import modules*
 
+import pmdarima as pm
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split *this is imported twice*
+
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
-import yfinance as yf
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-import pmdarima as pm
 from sklearn.metrics import mean_squared_error *this is imported twice*
+
+from sklearn.preprocessing import StandardScaler
+
 import numpy as np *this is imported twice*
 import statsmodels.api as sm
+import yfinance as yf
 
 *the package list should be in order from most common to least, with modules listed last*
 
 ### Step 2: User input for stock ticker
 *why is there input here? how are you presenting this? as a black box with ux? if not, skip this and define your variables at the top of the file*
+
+
+* make a note that the demo uses one of three stocks*
+#### Initial load run
+stock_data = yf.download('APPL', start='2021-01-01', end='2024-05-31', interval='1d')
 
 ### Step 3: Check data before processing
 *how did you check this? what are the indicators?*
